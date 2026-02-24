@@ -176,8 +176,12 @@ app.delete('/CodeSystem/:id', (req, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// 404 fallback
+// Root redirect + 404 fallback
 // ---------------------------------------------------------------------------
+app.get('/', (_req, res) => {
+  res.redirect('/CodeSystem');
+});
+
 app.use((_req, res) => {
   res.status(404).json(makeOutcome('error', 'not-found', 'Endpoint not found'));
 });
