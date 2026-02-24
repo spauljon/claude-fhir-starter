@@ -181,7 +181,7 @@ router.delete('/CodeSystem/:id', (req, res) => {
 // ---------------------------------------------------------------------------
 app.use('/fhir', router);
 
-app.get('/', (_req, res) => {
+app.get('/fhir', (_req, res) => {
   res.redirect('/fhir/CodeSystem');
 });
 
