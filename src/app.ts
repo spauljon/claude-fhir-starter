@@ -24,12 +24,12 @@ app.get('/CodeSystem', (req, res) => {
     return;
   }
 
-  const results = codeSystemStore.search({
-    url,
-    version,
-    name,
-    status: status as FhirStatus | undefined,
-  });
+  const searchParams: import('./store.js').SearchParams = {};
+  if (url !== undefined) searchParams.url = url;
+  if (version !== undefined) searchParams.version = version;
+  if (name !== undefined) searchParams.name = name;
+  if (status !== undefined) searchParams.status = status as FhirStatus;
+  const results = codeSystemStore.search(searchParams);
 
   res.json(makeBundle(results));
 });
