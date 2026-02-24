@@ -4,6 +4,7 @@ import { makeBundle, makeOutcome, notFound, badRequest, FHIR_JSON, makeParameter
 import type { CodeSystem, FhirStatus, Parameters as FhirParameters } from './types.js';
 
 export const app = express();
+const router = express.Router();
 
 app.use(express.json({ type: ['application/json', 'application/fhir+json'] }));
 
@@ -16,7 +17,7 @@ app.use((_req, res, next) => {
 // ---------------------------------------------------------------------------
 // GET /CodeSystem — search
 // ---------------------------------------------------------------------------
-app.get('/CodeSystem', (req, res) => {
+router.get('/CodeSystem', (req, res) => {
   const { url, version, name, status } = req.query as Record<string, string | undefined>;
 
   if (status !== undefined && !['draft', 'active', 'retired', 'unknown'].includes(status)) {
@@ -37,7 +38,7 @@ app.get('/CodeSystem', (req, res) => {
 // ---------------------------------------------------------------------------
 // POST /CodeSystem — create
 // ---------------------------------------------------------------------------
-app.post('/CodeSystem', (req, res) => {
+router.post('/CodeSystem', (req, res) => {
   const body = req.body as Partial<CodeSystem>;
 
   if (!body.status) {
@@ -54,14 +55,14 @@ app.post('/CodeSystem', (req, res) => {
   const created = codeSystemStore.create(rest as Omit<CodeSystem, 'id' | 'meta' | 'resourceType'>);
 
   res.status(201)
-    .setHeader('Location', `/CodeSystem/${created.id}`)
+    .setHeader('Location', `/fhir/CodeSystem/${created.id}`)
     .json(created);
 });
 
 // ---------------------------------------------------------------------------
 // GET /CodeSystem/$lookup — terminology operation
 // ---------------------------------------------------------------------------
-app.get('/CodeSystem/\\$lookup', (req, res) => {
+router.get('/CodeSystem/\\$lookup', (req, res) => {
   const { system, code, version } = req.query as Record<string, string | undefined>;
 
   if (!system || !code) {
@@ -77,7 +78,7 @@ app.get('/CodeSystem/\\$lookup', (req, res) => {
   res.json(result);
 });
 
-app.post('/CodeSystem/\\$lookup', (req, res) => {
+router.post('/CodeSystem/\\$lookup', (req, res) => {
   const params = req.body as FhirParameters | undefined;
   const system = getParam(params, 'system') ?? getParam(params, 'url');
   const code = getParam(params, 'code');
@@ -99,7 +100,7 @@ app.post('/CodeSystem/\\$lookup', (req, res) => {
 // ---------------------------------------------------------------------------
 // GET /CodeSystem/$validate-code — terminology operation
 // ---------------------------------------------------------------------------
-app.get('/CodeSystem/\\$validate-code', (req, res) => {
+router.get('/CodeSystem/\\$validate-code', (req, res) => {
   const { url, code, version } = req.query as Record<string, string | undefined>;
 
   if (!url || !code) {
@@ -111,7 +112,7 @@ app.get('/CodeSystem/\\$validate-code', (req, res) => {
   res.json(outcome);
 });
 
-app.post('/CodeSystem/\\$validate-code', (req, res) => {
+router.post('/CodeSystem/\\$validate-code', (req, res) => {
   const params = req.body as FhirParameters | undefined;
   const url = getParam(params, 'url');
   const code = getParam(params, 'code');
@@ -129,7 +130,7 @@ app.post('/CodeSystem/\\$validate-code', (req, res) => {
 // ---------------------------------------------------------------------------
 // GET /CodeSystem/:id — read
 // ---------------------------------------------------------------------------
-app.get('/CodeSystem/:id', (req, res) => {
+router.get('/CodeSystem/:id', (req, res) => {
   const cs = codeSystemStore.read(req.params.id);
   if (!cs) {
     res.status(404).json(notFound(req.params.id));
@@ -141,7 +142,7 @@ app.get('/CodeSystem/:id', (req, res) => {
 // ---------------------------------------------------------------------------
 // PUT /CodeSystem/:id — update
 // ---------------------------------------------------------------------------
-app.put('/CodeSystem/:id', (req, res) => {
+router.put('/CodeSystem/:id', (req, res) => {
   const body = req.body as Partial<CodeSystem>;
 
   if (!body.status) {
@@ -166,7 +167,7 @@ app.put('/CodeSystem/:id', (req, res) => {
 // ---------------------------------------------------------------------------
 // DELETE /CodeSystem/:id — delete
 // ---------------------------------------------------------------------------
-app.delete('/CodeSystem/:id', (req, res) => {
+router.delete('/CodeSystem/:id', (req, res) => {
   const deleted = codeSystemStore.delete(req.params.id);
   if (!deleted) {
     res.status(404).json(notFound(req.params.id));
@@ -176,10 +177,12 @@ app.delete('/CodeSystem/:id', (req, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// Root redirect + 404 fallback
+// Mount router + root redirect + 404 fallback
 // ---------------------------------------------------------------------------
+app.use('/fhir', router);
+
 app.get('/', (_req, res) => {
-  res.redirect('/CodeSystem');
+  res.redirect('/fhir/CodeSystem');
 });
 
 app.use((_req, res) => {

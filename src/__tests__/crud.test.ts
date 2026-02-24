@@ -17,10 +17,10 @@ beforeEach(() => {
   codeSystemStore.clear();
 });
 
-describe('POST /CodeSystem', () => {
+describe('POST /fhir/CodeSystem', () => {
   it('creates a resource and returns 201', async () => {
     const res = await request(app)
-      .post('/CodeSystem')
+      .post('/fhir/CodeSystem')
       .set('Content-Type', FHIR_JSON)
       .send(validBody);
 
@@ -34,17 +34,17 @@ describe('POST /CodeSystem', () => {
 
   it('returns Location header', async () => {
     const res = await request(app)
-      .post('/CodeSystem')
+      .post('/fhir/CodeSystem')
       .set('Content-Type', FHIR_JSON)
       .send(validBody);
 
-    expect(res.headers['location']).toMatch(/^\/CodeSystem\//);
+    expect(res.headers['location']).toMatch(/^\/fhir\/CodeSystem\//);
   });
 
   it('returns 400 when status is missing', async () => {
     const { status: _s, ...noStatus } = validBody;
     const res = await request(app)
-      .post('/CodeSystem')
+      .post('/fhir/CodeSystem')
       .set('Content-Type', FHIR_JSON)
       .send(noStatus);
 
@@ -55,7 +55,7 @@ describe('POST /CodeSystem', () => {
   it('returns 400 when content is missing', async () => {
     const { content: _c, ...noContent } = validBody;
     const res = await request(app)
-      .post('/CodeSystem')
+      .post('/fhir/CodeSystem')
       .set('Content-Type', FHIR_JSON)
       .send(noContent);
 
@@ -65,7 +65,7 @@ describe('POST /CodeSystem', () => {
 
   it('ignores client-supplied id and assigns its own', async () => {
     const res = await request(app)
-      .post('/CodeSystem')
+      .post('/fhir/CodeSystem')
       .set('Content-Type', FHIR_JSON)
       .send({ ...validBody, id: 'client-id' });
 
@@ -74,10 +74,10 @@ describe('POST /CodeSystem', () => {
   });
 });
 
-describe('GET /CodeSystem/:id', () => {
+describe('GET /fhir/CodeSystem/:id', () => {
   it('returns the resource when it exists', async () => {
     const created = codeSystemStore.create(validBody);
-    const res = await request(app).get(`/CodeSystem/${created.id}`);
+    const res = await request(app).get(`/fhir/CodeSystem/${created.id}`);
 
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toContain(FHIR_JSON);
@@ -86,7 +86,7 @@ describe('GET /CodeSystem/:id', () => {
   });
 
   it('returns 404 with OperationOutcome for unknown id', async () => {
-    const res = await request(app).get('/CodeSystem/no-such-id');
+    const res = await request(app).get('/fhir/CodeSystem/no-such-id');
 
     expect(res.status).toBe(404);
     expect(res.body.resourceType).toBe('OperationOutcome');
@@ -94,11 +94,11 @@ describe('GET /CodeSystem/:id', () => {
   });
 });
 
-describe('PUT /CodeSystem/:id', () => {
+describe('PUT /fhir/CodeSystem/:id', () => {
   it('updates and returns the resource', async () => {
     const created = codeSystemStore.create(validBody);
     const res = await request(app)
-      .put(`/CodeSystem/${created.id}`)
+      .put(`/fhir/CodeSystem/${created.id}`)
       .set('Content-Type', FHIR_JSON)
       .send({ ...validBody, status: 'retired' });
 
@@ -110,7 +110,7 @@ describe('PUT /CodeSystem/:id', () => {
 
   it('returns 404 for unknown id', async () => {
     const res = await request(app)
-      .put('/CodeSystem/ghost')
+      .put('/fhir/CodeSystem/ghost')
       .set('Content-Type', FHIR_JSON)
       .send(validBody);
 
@@ -122,7 +122,7 @@ describe('PUT /CodeSystem/:id', () => {
     const created = codeSystemStore.create(validBody);
     const { status: _s, ...noStatus } = validBody;
     const res = await request(app)
-      .put(`/CodeSystem/${created.id}`)
+      .put(`/fhir/CodeSystem/${created.id}`)
       .set('Content-Type', FHIR_JSON)
       .send(noStatus);
 
@@ -131,17 +131,17 @@ describe('PUT /CodeSystem/:id', () => {
   });
 });
 
-describe('DELETE /CodeSystem/:id', () => {
+describe('DELETE /fhir/CodeSystem/:id', () => {
   it('deletes and returns 204', async () => {
     const created = codeSystemStore.create(validBody);
-    const res = await request(app).delete(`/CodeSystem/${created.id}`);
+    const res = await request(app).delete(`/fhir/CodeSystem/${created.id}`);
 
     expect(res.status).toBe(204);
     expect(codeSystemStore.read(created.id)).toBeUndefined();
   });
 
   it('returns 404 for unknown id', async () => {
-    const res = await request(app).delete('/CodeSystem/ghost');
+    const res = await request(app).delete('/fhir/CodeSystem/ghost');
 
     expect(res.status).toBe(404);
     expect(res.body.resourceType).toBe('OperationOutcome');
@@ -150,7 +150,7 @@ describe('DELETE /CodeSystem/:id', () => {
 
 describe('Content-Type enforcement', () => {
   it('all responses have application/fhir+json content type', async () => {
-    const res = await request(app).get('/CodeSystem/nonexistent');
+    const res = await request(app).get('/fhir/CodeSystem/nonexistent');
     expect(res.headers['content-type']).toContain(FHIR_JSON);
   });
 });
